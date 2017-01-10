@@ -1,1 +1,1 @@
-# Django_React_Tutorial
+# Django_React_ex
