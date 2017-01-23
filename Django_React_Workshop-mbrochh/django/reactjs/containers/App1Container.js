@@ -1,0 +1,18 @@
+import React, {Component} from 'react'
+import Headline from '../Components/Headline'
+
+class App1Container extends Component {
+  render() {
+    return (
+      <div className="container">
+        <div className="row">
+          <div className="col-sm-12">
+            <Headline>Sample App!</Headline>
+          </div>
+        </div>
+      </div>
+    )
+  }
+}
+
+export default App1Container
