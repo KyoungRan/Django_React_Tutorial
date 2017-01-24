@@ -325,3 +325,43 @@ export default class Headline extends React.Component {
   }
 }
 ```
+
+9. Generate some files in `djreact/static/bundles/`
+
+```bash
+npm run serve
+```
+
+
+# Step 4: Use the bundle
+
+1. Change `view1.html`:
+
+```html
+{% extends "base.html" %}
+{% load render_bundle from webpack_loader %}
+
+{% block main %}
+<div id="App1"></div>
+{% render_bundle 'vendors' %}
+{% render_bundle 'App1' %}
+{% endblock %}
+```
+
+2. Add below to `settings.py`:
+
+```python
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/local/',  # end with slash
+        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats-local.json'),
+    }
+}
+```
+
+3. Run Server
+
+```bash
+npm run serve
+python manage.py runserver
+```
