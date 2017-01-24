@@ -2,7 +2,10 @@
   "name": "djreact",
   "version": "0.0.1",
   "scripts": {
-    "serve": "node_modules/.bin/webpack --config webpack.local.config.js",
+    "build": "npm run clean&& export NODE_ENV=production&& webpack -p",
+    "dev": "node server.js",
+    "config": "node_modules/.bin/webpack --config webpack.local.config.js",
+    "clean": "rm -rf static",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {

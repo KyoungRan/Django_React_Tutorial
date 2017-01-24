@@ -7,7 +7,7 @@ class App1Container extends Component {
       <div className="container">
         <div className="row">
           <div className="col-sm-12">
-            <Headline>Somthing New!</Headline>
+            <Headline>Somthing Fancy!</Headline>
           </div>
         </div>
       </div>

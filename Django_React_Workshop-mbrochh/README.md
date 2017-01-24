@@ -207,7 +207,7 @@ module.exports = {
 
   entry: {
     // Add as many entry points as you have container-react-components here
-    App1: './reactjs/App1',
+    App: './reactjs/App',
     vendors: ['react'],
   },
 
@@ -269,9 +269,9 @@ module.exports = config
 
 7. Create `reactjs` folder
 
-8. Create `App1.js`, `containers/App1Container.js`, and `components/Headline.js` in `reactjs`, and add below:
+8. Create `App.js`, `containers/App1Container.js`, and `components/Headline.js` in `reactjs`, and add below:
 
-* `App1.js`
+* `App.js`
 
 ```js
 import React from "react"
@@ -279,7 +279,7 @@ import { render } from "react-dom"
 
 import App1Container from "./containers/App1Container"
 
-class App1 extends React.Component {
+class App extends React.Component {
   render() {
     return (
       <App1Container />
@@ -287,7 +287,7 @@ class App1 extends React.Component {
   }
 }
 
-render(<App1/>, document.getElementById('App1'))
+render(<App/>, document.getElementById('App'))
 ```
 
 * `containers/App1Container.js`
@@ -342,9 +342,9 @@ npm run serve
 {% load render_bundle from webpack_loader %}
 
 {% block main %}
-<div id="App1"></div>
+<div id="App"></div>
 {% render_bundle 'vendors' %}
-{% render_bundle 'App1' %}
+{% render_bundle 'App' %}
 {% endblock %}
 ```
 
@@ -363,5 +363,78 @@ WEBPACK_LOADER = {
 
 ```bash
 npm run serve
+python manage.py runserver
+```
+
+
+# Step 5: Hot Reloading
+
+1. Create `server.js` file that will start a webpack-dev-server for us:
+
+```js
+var webpack = require('webpack')
+var WebpackDevServer = require('webpack-dev-server')
+var config = require('./webpack.local.config')
+
+new WebpackDevServer(webpack(config), {
+  publicPath: config.output.publicPath,
+  hot: true,
+  inline: true,
+  historyApiFallback: true,
+}).listen(3000, config.ip, function (err, result) {
+  if (err) {
+    console.log(err)
+  }
+
+  console.log('Listening at ' + config.ip + ':3000')
+})
+Next, we need to add/replace the following in our webpack.local.config.js:
+
+var ip = 'localhost'
+
+config.entry = {
+  App: [
+    'webpack-dev-server/client?http://' + ip + ':3000',
+    'webpack/hot/only-dev-server',
+    './reactjs/App',
+  ],
+}
+
+config.output.publicPath = 'http://' + ip + ':3000' + '/assets/bundles/'
+
+config.plugins = config.plugins.concat([
+  new webpack.HotModuleReplacementPlugin(),
+  new webpack.NoErrorsPlugin(),
+  new BundleTracker({filename: './webpack-stats-local.json'}),
+])
+```
+
+2. Add/Replace the following lines in our `webpack.local.config.js`:
+
+```js
+var ip = 'localhost'
+
+config.entry = {
+  App: [
+    'webpack-dev-server/client?http://' + ip + ':3000',
+    'webpack/hot/only-dev-server',
+    './reactjs/App',
+  ],
+}
+
+config.output.publicPath = 'http://' + ip + ':3000' + '/assets/bundles/'
+
+config.plugins = config.plugins.concat([
+  new webpack.HotModuleReplacementPlugin(),
+  new webpack.NoErrorsPlugin(),
+  new BundleTracker({filename: './webpack-stats-local.json'}),
+])
+```
+
+3. Run server
+
+```bash
+node server.js
+#other bash
 python manage.py runserver
 ```
