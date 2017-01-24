@@ -438,3 +438,155 @@ node server.js
 #other bash
 python manage.py runserver
 ```
+
+
+# Step 6: Going to production
+
+1. Create `webpack.stage.config.js` and add below:
+
+```js
+var webpack = require('webpack')
+var BundleTracker = require('webpack-bundle-tracker')
+
+var config = require('./webpack.base.config.js')
+
+config.output.path = require('path').resolve('./djreact/static/bundles/stage/')
+
+config.plugins = config.plugins.concat([
+  new BundleTracker({filename: './webpack-stats-stage.json'}),
+
+  // removes a lot of debugging code in React
+  new webpack.DefinePlugin({
+    'process.env': {
+      'NODE_ENV': JSON.stringify('staging'),
+      'BASE_API_URL': JSON.stringify('https://sandbox.example.com/api/v1/'),
+  }}),
+
+  // keeps hashes consistent between compilations
+  new webpack.optimize.OccurenceOrderPlugin(),
+
+  // minifies your code
+  new webpack.optimize.UglifyJsPlugin({
+    compressor: {
+      warnings: false
+    }
+  })
+])
+
+// Add a loader for JSX files
+config.module.loaders.push(
+  { test: /\.jsx?$/, exclude: /node_modules/, loader: 'babel' }
+)
+
+module.exports = config
+```
+
+2. Create `webpack.prod.config.js` and add below:
+
+```js
+var webpack = require('webpack')
+var BundleTracker = require('webpack-bundle-tracker')
+
+var config = require('./webpack.base.config.js')
+
+config.output.path = require('path').resolve('./djreact/static/bundles/prod/')
+
+config.plugins = config.plugins.concat([
+  new BundleTracker({filename: './webpack-stats-prod.json'}),
+
+  // removes a lot of debugging code in React
+  new webpack.DefinePlugin({
+    'process.env': {
+      'NODE_ENV': JSON.stringify('production'),
+      'BASE_API_URL': JSON.stringify('https://example.com/api/v1/'),
+  }}),
+
+  // keeps hashes consistent between compilations
+  new webpack.optimize.OccurenceOrderPlugin(),
+
+  // minifies your code
+  new webpack.optimize.UglifyJsPlugin({
+    compressor: {
+      warnings: false
+    }
+  })
+])
+
+// Add a loader for JSX files
+config.module.loaders.push(
+  { test: /\.jsx?$/, exclude: /node_modules/, loader: 'babel' }
+)
+
+module.exports = config
+```
+
+3. Add/Replace to `webpack.local.config.js` for using the `DefinePlugin`:
+
+```js
+config.plugins = config.plugins.concat([
+  new webpack.HotModuleReplacementPlugin(),
+  new webpack.NoErrorsPlugin(),
+  new BundleTracker({filename: './webpack-stats-local.json'}),
+  new webpack.DefinePlugin({
+    'process.env': {
+      'NODE_ENV': JSON.stringify('development'),
+      'BASE_API_URL': JSON.stringify('https://'+ ip +':8000/api/v1/'),
+  }}),
+])
+```
+
+4. We can now create stage and prod bundles like this:
+
+```
+node_modules/.bin/webpack --config webpack.stage.config.js
+node_modules/.bin/webpack --config webpack.prod.config.js
+```
+
+5. Put that intoa scropt. Run `pip install Fabric` and add it to `requirements.txt`
+
+```bash
+pip install Fabric
+```
+
+```txt
+// requirements.txt
+Fabric==1.10.2
+```
+
+* Then add the following `fabfile.py`:
+
+```python
+from fabric.api import local
+
+def webpack():
+    local('rm -rf djreact/static/bundles/stage/*')
+    local('rm -rf djreact/static/bundles/prod/*')
+    local('webpack --config webpack.stage.config.js --progress --colors')
+    local('webpack --config webpack.prod.config.js --progress --colors')
+```
+
+6. Your workflow will now look like this:
+
+* Start `python manage.py runserver`
+
+* Start `node server.js`
+
+* Edit your ReactJS app
+
+* When done, commit your changes
+
+* Run `fab webpack` and commit your new bundles
+
+* Run a deployment
+
+
+7. Override `settings.py`:
+
+```python
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/stage/',  # end with slash
+        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats-stage.json'),
+    }
+}
+```

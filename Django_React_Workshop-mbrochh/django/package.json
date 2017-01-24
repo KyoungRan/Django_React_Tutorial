@@ -4,7 +4,10 @@
   "scripts": {
     "build": "npm run clean&& export NODE_ENV=production&& webpack -p",
     "dev": "node server.js",
-    "config": "node_modules/.bin/webpack --config webpack.local.config.js",
+    "fab": "fab webpack",
+    "local": "node_modules/.bin/webpack --config webpack.local.config.js",
+    "stage": "node_modules/.bin/webpack --config webpack.stage.config.js",
+    "prod": "node_modules/.bin/webpack --config webpack.prod.config.js",
     "clean": "rm -rf static",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
