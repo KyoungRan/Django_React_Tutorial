@@ -9,7 +9,7 @@ Original (https://github.com/mbrochh/django-reactjs-boilerplate)
 # (window)
 pip install virtualenvwrapper-win
 # (Linux & Mac)
-pip install virtualenvwrapper-win
+pip install virtualenvwrapper
 ```
 * virtual Environments
 
@@ -588,5 +588,116 @@ WEBPACK_LOADER = {
         'BUNDLE_DIR_NAME': 'bundles/stage/',  # end with slash
         'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats-stage.json'),
     }
+}
+```
+
+
+# Step 7: Add redux
+
+1. Create `reactjs/actions/counterActions.js` form Action Creators:
+
+```js
+export const INCREASE = "INCREASE"
+export function increaseCounter() {
+    return {type: INCREASE}
+}
+```
+
+2. Create `reactjs/reducers/counters.js`:
+
+```js
+import * as sampleActions from "../actions/counterActions"
+
+const initialState = {
+  clicks: 0,
+}
+
+export default function counters(state=initialState, action={}) {
+  switch (action.type) {
+  case sampleActions.INCREASE:
+    return {...state, clicks: state.clicks + 1}
+  default:
+    return state
+  }
+}
+```
+
+3. Create `reactjs/reducers/index.js`:
+
+```js
+export { default as counters } from './counters'
+```
+
+4. Modify `App.js`:
+
+```js
+import React from "react"
+import { render } from "react-dom"
+import {
+  createStore,
+  compose,
+  applyMiddleware,
+  combineReducers,
+} from "redux"
+import { Provider } from "react-redux"
+import thunk from "redux-thunk"
+
+import * as reducers from "./reducers"
+import App1Container from "./containers/App1Container"
+
+let finalCreateStore = compose(
+  applyMiddleware(thunk),
+  window.devToolsExtension ? window.devToolsExtension() : f => f
+)(createStore)
+let reducer = combineReducers(reducers)
+let store = finalCreateStore(reducer)
+
+class App extends React.Component {
+  render() {
+    return (
+      <Provider store={store}>
+        <App1Container />
+      </Provider>
+    )
+  }
+}
+
+render(<App/>, document.getElementById('App'))
+```
+
+5. Modify/Upgrade `App1Container.js`:
+
+```js
+import React from "react"
+
+import { connect } from "react-redux"
+
+import * as counterActions from "../actions/counterActions"
+import Headline from "../components/Headline"
+
+@connect(state => ({
+  counters: state.counters,
+}))
+export default class SampleAppContainer extends React.Component {
+  handleClick() {
+    let {dispatch} = this.props;
+    dispatch(counterActions.increaseCounter())
+  }
+
+  render() {
+    let {counters} = this.props
+    return (
+      <div className="container">
+        <div className="row">
+          <div className="col-sm-12">
+            <Headline>Sample App!</Headline>
+            <div onClick={() => this.handleClick()}>INCREASE</div>
+            <p>{counters.clicks}</p>
+            <p>{process.env.BASE_API_URL}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 }
 ```
