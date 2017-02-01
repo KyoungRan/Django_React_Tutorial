@@ -137,6 +137,6 @@ jspm_packages
 
 # Others
 *.swp
-webpack.stats-local.json
-webpack.stats-prod.json
-webpack.stats-stage.json
+webpack-stats-local.json
+webpack-stats-prod.json
+webpack-stats-stage.json
